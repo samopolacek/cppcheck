@@ -338,6 +338,9 @@ public:
     SimpleEnableGroup<Certainty> certainty;
     SimpleEnableGroup<Checks> checks;
 
+    /** @brief write SARIF results (--sarif) */
+    bool sarif;
+
     /** @brief show timing information (--showtime=file|summary|top5) */
     SHOWTIME_MODES showtime;
 

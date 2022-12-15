@@ -34,6 +34,9 @@
 #include "suppressions.h"
 #include "utils.h"
 #include "checkunusedfunctions.h"
+#include "xmlanalysisreport.h"
+#include "sarifanalysisreport.h"
+#include "clianalysisreport.h"
 
 #if defined(THREADING_MODEL_THREAD)
 #include "threadexecutor.h"
@@ -69,7 +72,7 @@
 /*static*/ FILE* CppCheckExecutor::mExceptionOutput = stdout;
 
 CppCheckExecutor::CppCheckExecutor()
-    : mSettings(nullptr), mLatestProgressOutputTime(0), mErrorOutput(nullptr), mShowAllErrors(false)
+    : mSettings(nullptr), mReport(nullptr), mLatestProgressOutputTime(0), mErrorOutput(nullptr), mShowAllErrors(false)
 {}
 
 CppCheckExecutor::~CppCheckExecutor()
@@ -97,11 +100,21 @@ bool CppCheckExecutor::parseFromArgs(CppCheck *cppcheck, int argc, const char* c
             }
         }
 
+        if (!settings.outputFile.empty()) {
+            mErrorOutput = new std::ofstream(settings.outputFile);
+        }
+
+        if (settings.xml || parser.getShowErrorMessages())
+            mReport = std::unique_ptr<AnalysisReport>(new XMLAnalysisReport(settings.cppcheckCfgProductName));
+        else if (settings.sarif)
+            mReport = std::unique_ptr<AnalysisReport>(new SARIFAnalysisReport(CppCheck::version()));
+        else
+            mReport = std::unique_ptr<AnalysisReport>(new CLIAnalysisReport(settings.verbose, settings.templateFormat, settings.templateLocation, mErrorOutput));
+
         if (parser.getShowErrorMessages()) {
             mShowAllErrors = true;
-            std::cout << ErrorMessage::getXMLHeader(settings.cppcheckCfgProductName);
             cppcheck->getErrorMessages();
-            std::cout << ErrorMessage::getXMLFooter() << std::endl;
+            std::cout << mReport->serialize() << std::endl;
         }
 
         if (parser.exitAfterPrinting()) {
@@ -300,14 +313,6 @@ int CppCheckExecutor::check_internal(CppCheck& cppcheck)
     if (settings.reportProgress)
         mLatestProgressOutputTime = std::time(nullptr);
 
-    if (!settings.outputFile.empty()) {
-        mErrorOutput = new std::ofstream(settings.outputFile);
-    }
-
-    if (settings.xml) {
-        reportErr(ErrorMessage::getXMLHeader(settings.cppcheckCfgProductName));
-    }
-
     if (!settings.buildDir.empty()) {
         settings.loadSummaries();
 
@@ -409,9 +414,7 @@ int CppCheckExecutor::check_internal(CppCheck& cppcheck)
         }
     }
 
-    if (settings.xml) {
-        reportErr(ErrorMessage::getXMLFooter());
-    }
+    reportErr(mReport->serialize());
 
     mSettings = nullptr;
     if (returnValue)
@@ -446,15 +449,15 @@ static inline std::string ansiToOEM(const std::string &msg, bool doConvert)
 void CppCheckExecutor::reportErr(const std::string &errmsg)
 {
     if (mErrorOutput)
-        *mErrorOutput << errmsg << std::endl;
+        *mErrorOutput << errmsg;
     else {
-        std::cerr << ansiToOEM(errmsg, (mSettings == nullptr) ? true : !mSettings->xml) << std::endl;
+        std::cerr << ansiToOEM(errmsg, (mSettings == nullptr) ? true : !mSettings->xml);
     }
 }
 
 void CppCheckExecutor::reportOut(const std::string &outmsg, Color c)
 {
-    std::cout << c << ansiToOEM(outmsg, true) << Color::Reset << std::endl;
+    std::cout << c << ansiToOEM(outmsg, true) << Color::Reset;
 }
 
 void CppCheckExecutor::reportProgress(const std::string &filename, const char stage[], const std::size_t value)
@@ -500,7 +503,7 @@ void CppCheckExecutor::reportStatus(std::size_t fileindex, std::size_t filecount
 void CppCheckExecutor::reportErr(const ErrorMessage &msg)
 {
     if (mShowAllErrors) {
-        reportOut(msg.toXML());
+        mReport->addFinding(msg);
         return;
     }
 
@@ -508,10 +511,7 @@ void CppCheckExecutor::reportErr(const ErrorMessage &msg)
     if (!mShownErrors.insert(msg.toString(mSettings->verbose)).second)
         return;
 
-    if (mSettings->xml)
-        reportErr(msg.toXML());
-    else
-        reportErr(msg.toString(mSettings->verbose, mSettings->templateFormat, mSettings->templateLocation));
+    mReport->addFinding(msg);
 }
 
 void CppCheckExecutor::setExceptionOutput(FILE* exceptionOutput)

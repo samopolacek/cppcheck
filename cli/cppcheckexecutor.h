@@ -19,6 +19,7 @@
 #ifndef CPPCHECKEXECUTOR_H
 #define CPPCHECKEXECUTOR_H
 
+#include "analysisreport.h"
 #include "color.h"
 #include "errorlogger.h"
 
@@ -29,6 +30,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <memory>
 
 class CppCheck;
 class Library;
@@ -169,6 +171,11 @@ private:
      * Pointer to current settings; set while check() is running.
      */
     const Settings* mSettings;
+
+    /**
+     * Reporting object for storing and serializing the results.
+     */
+    std::unique_ptr<AnalysisReport> mReport;
 
     /**
      * Used to filter out duplicate error messages.
