@@ -17,14 +17,15 @@
  */
 
 #include "sarifanalysisreport.h"
+#include "errorlogger.h"
 
 #include <picojson.h>
 
-SARIFAnalysisReport::SARIFAnalysisReport( std::string versionNumber)
+SARIFAnalysisReport::SARIFAnalysisReport(std::string versionNumber)
     : mVersionNumber(std::move(versionNumber)) {}
 
-void SARIFAnalysisReport::addFinding(ErrorMessage msg) {
-    mFindings[msg.id].emplace_back(std::move(msg));
+void SARIFAnalysisReport::addFinding(const ErrorMessage& msg) {
+    mFindings[msg.id].emplace_back(msg);
 }
 
 #ifdef PICOJSON_USE_RVALUE_REFERENCE
@@ -65,15 +66,15 @@ static std::string sarifSeverity(Severity::SeverityType severity) {
     }
 }
 
-static std::string sarifPrecision(Certainty::CertaintyLevel certainty) {
+static std::string sarifPrecision(Certainty certainty) {
     switch (certainty) {
-    case Certainty::CertaintyLevel::safe:
+    case Certainty::safe:
         return "very-high";
-    case Certainty::CertaintyLevel::normal:
+    case Certainty::normal:
         return "high";
-    case Certainty::CertaintyLevel::experimental:
+    case Certainty::experimental:
         return "medium";
-    case Certainty::CertaintyLevel::inconclusive:
+    case Certainty::inconclusive:
     default:
         return "low";
     }

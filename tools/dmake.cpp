@@ -64,15 +64,18 @@ static void getDeps(const std::string &filename, std::vector<std::string> &depfi
     if (std::find(depfiles.cbegin(), depfiles.cend(), filename) != depfiles.cend())
         return;
 
-    std::ifstream f(filename.c_str());
+    std::ifstream f(filename);
     if (!f.is_open()) {
         /*
          * Recursively search for includes in other directories.
          * Files are searched according to the following priority:
          * [test, tools] -> cli -> lib -> externals
          */
-        if (filename.compare(0, 4, "cli/") == 0)
+        if (filename.compare(0, 4, "cli/") == 0) {
             getDeps("lib" + filename.substr(filename.find('/')), depfiles);
+            for (const std::string & external : externalfolders)
+                getDeps(external + filename.substr(filename.find('/')), depfiles);
+        }
         else if (filename.compare(0, 5, "test/") == 0)
             getDeps("cli" + filename.substr(filename.find('/')), depfiles);
         else if (filename.compare(0, 6, "tools/") == 0)
@@ -632,7 +635,7 @@ int main(int argc, char **argv)
 
     makeConditionalVariable(fout, "PREFIX", "/usr");
     makeConditionalVariable(fout, "INCLUDE_FOR_LIB", "-Ilib -isystem externals -isystem externals/picojson -isystem externals/simplecpp -isystem externals/tinyxml2");
-    makeConditionalVariable(fout, "INCLUDE_FOR_CLI", "-Ilib -isystem externals/simplecpp -isystem externals/tinyxml2");
+    makeConditionalVariable(fout, "INCLUDE_FOR_CLI", "-Ilib -isystem externals/picojson -isystem externals/simplecpp -isystem externals/tinyxml2");
     makeConditionalVariable(fout, "INCLUDE_FOR_TEST", "-Ilib -Icli -isystem externals/simplecpp -isystem externals/tinyxml2");
 
     fout << "BIN=$(DESTDIR)$(PREFIX)/bin\n\n";
@@ -652,7 +655,12 @@ int main(int argc, char **argv)
     fout << "cppcheck: $(LIBOBJ) $(CLIOBJ) $(EXTOBJ)\n";
     fout << "\t$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $^ $(LIBS) $(LDFLAGS) $(RDYNAMIC)\n\n";
     fout << "all:\tcppcheck testrunner\n\n";
-    fout << "testrunner: $(TESTOBJ) $(LIBOBJ) $(EXTOBJ) cli/executor.o cli/processexecutor.o cli/threadexecutor.o cli/cmdlineparser.o cli/cppcheckexecutor.o cli/cppcheckexecutorseh.o cli/cppcheckexecutorsig.o cli/stacktrace.o cli/filelister.o\n";
+    fout << "testrunner: $(TESTOBJ) $(LIBOBJ) $(EXTOBJ)";
+    for (const std::string& f: clifiles) {
+        if (f != "cli/main.cpp")
+            fout << " " << f.substr(0, f.find(".")) << ".o";
+    }
+    fout << "\n";
     fout << "\t$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $^ $(LIBS) $(LDFLAGS) $(RDYNAMIC)\n\n";
     fout << "test:\tall\n";
     fout << "\t./testrunner\n\n";

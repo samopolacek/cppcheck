@@ -16,10 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "clianalysisreport.h"
+#include "errorlogger.h"
+
 #include <iostream>
 #include <fstream>
-
-#include "clianalysisreport.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -56,7 +57,7 @@ static inline std::string ansiToOEM(const std::string &msg, bool doConvert)
 #define ansiToOEM(msg, doConvert) (msg)
 #endif
 
-void CLIAnalysisReport::addFinding(const ErrorMessage msg) {
+void CLIAnalysisReport::addFinding(const ErrorMessage& msg) {
     const std::string errmsg = msg.toString(mVerbose, mTemplateFormat, mTemplateLocation);
     if (mErrorOutput)
         *mErrorOutput << errmsg << std::endl;

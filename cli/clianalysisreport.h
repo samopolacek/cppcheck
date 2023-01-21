@@ -28,7 +28,7 @@
 class CLIAnalysisReport : public AnalysisReport {
 public:
     CLIAnalysisReport(bool verbose, std::string templateFormat, std::string templateLocation, std::ofstream* errorOutput);
-    void addFinding(const ErrorMessage msg) override;
+    void addFinding(const ErrorMessage& msg) override;
     std::string serialize() override;
 
 private:

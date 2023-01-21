@@ -172,7 +172,7 @@ ifndef INCLUDE_FOR_LIB
 endif
 
 ifndef INCLUDE_FOR_CLI
-    INCLUDE_FOR_CLI=-Ilib -isystem externals/simplecpp -isystem externals/tinyxml2
+    INCLUDE_FOR_CLI=-Ilib -isystem externals/picojson -isystem externals/simplecpp -isystem externals/tinyxml2
 endif
 
 ifndef INCLUDE_FOR_TEST
@@ -342,7 +342,7 @@ cppcheck: $(LIBOBJ) $(CLIOBJ) $(EXTOBJ)
 
 all:	cppcheck testrunner
 
-testrunner: $(TESTOBJ) $(LIBOBJ) $(EXTOBJ) cli/executor.o cli/processexecutor.o cli/threadexecutor.o cli/cmdlineparser.o cli/cppcheckexecutor.o cli/cppcheckexecutorseh.o cli/cppcheckexecutorsig.o cli/stacktrace.o cli/filelister.o cli/clianalysisreport.o cli/xmlanalysisreport.o cli/sarifanalysisreport.o
+testrunner: $(TESTOBJ) $(LIBOBJ) $(EXTOBJ) cli/clianalysisreport.o cli/cmdlineparser.o cli/cppcheckexecutor.o cli/cppcheckexecutorseh.o cli/cppcheckexecutorsig.o cli/executor.o cli/filelister.o cli/processexecutor.o cli/sarifanalysisreport.o cli/stacktrace.o cli/threadexecutor.o cli/xmlanalysisreport.o
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $^ $(LIBS) $(LDFLAGS) $(RDYNAMIC)
 
 test:	all
@@ -653,7 +653,7 @@ cli/processexecutor.o: cli/processexecutor.cpp cli/analysisreport.h cli/cppcheck
 	$(CXX) ${INCLUDE_FOR_CLI} $(CPPFLAGS) $(CXXFLAGS) -c -o $@ cli/processexecutor.cpp
 
 cli/sarifanalysisreport.o: cli/sarifanalysisreport.cpp cli/analysisreport.h cli/sarifanalysisreport.h externals/picojson/picojson.h lib/color.h lib/config.h lib/errorlogger.h lib/errortypes.h lib/suppressions.h
-	$(CXX) ${INCLUDE_FOR_CLI} -isystem externals/picojson $(CPPFLAGS) $(CXXFLAGS) -c -o $@ cli/sarifanalysisreport.cpp
+	$(CXX) ${INCLUDE_FOR_CLI} $(CPPFLAGS) $(CXXFLAGS) -c -o $@ cli/sarifanalysisreport.cpp
 
 cli/stacktrace.o: cli/stacktrace.cpp cli/stacktrace.h lib/config.h lib/utils.h
 	$(CXX) ${INCLUDE_FOR_CLI} $(CPPFLAGS) $(CXXFLAGS) -c -o $@ cli/stacktrace.cpp

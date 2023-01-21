@@ -24,6 +24,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="SourceFiles">
+    <ClCompile Include="..\cli\clianalysisreport.cpp" />
     <ClCompile Include="..\cli\cmdlineparser.cpp" />
     <ClCompile Include="..\cli\cppcheckexecutor.cpp" />
     <ClCompile Include="..\cli\cppcheckexecutorseh.cpp" />
@@ -31,8 +32,10 @@
     <ClCompile Include="..\cli\executor.cpp" />
     <ClCompile Include="..\cli\filelister.cpp" />
     <ClCompile Include="..\cli\processexecutor.cpp" />
+    <ClCompile Include="..\cli\sarifanalysisreport.cpp" />
     <ClCompile Include="..\cli\stacktrace.cpp" />
     <ClCompile Include="..\cli\threadexecutor.cpp" />
+    <ClCompile Include="..\cli\xmlanalysisreport.cpp" />
     <ClCompile Include="options.cpp" />
     <ClCompile Include="test64bit.cpp" />
     <ClCompile Include="testanalyzerinformation.cpp" />
@@ -106,6 +109,7 @@
     <ClCompile Include="testvarid.cpp" />
   </ItemGroup>
   <ItemGroup Label="HeaderFiles">
+    <ClInclude Include="..\cli\clianalysisreport.h" />
     <ClInclude Include="..\cli\cmdlineparser.h" />
     <ClInclude Include="..\cli\cppcheckexecutor.h" />
     <ClInclude Include="..\cli\cppcheckexecutorseh.h" />
@@ -113,8 +117,10 @@
     <ClInclude Include="..\cli\executor.h" />
     <ClInclude Include="..\cli\filelister.h" />
     <ClInclude Include="..\cli\processexecutor.h" />
+    <ClInclude Include="..\cli\sarifanalysisreport.h" />
     <ClInclude Include="..\cli\stacktrace.h" />
     <ClInclude Include="..\cli\threadexecutor.h" />
+    <ClInclude Include="..\cli\xmlanalysisreport.h" />
     <ClInclude Include="options.h" />
     <ClInclude Include="precompiled.h" />
     <ClInclude Include="redirect.h" />

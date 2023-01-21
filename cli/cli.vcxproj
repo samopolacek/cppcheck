@@ -404,6 +404,7 @@
     <ResourceCompile Include="version.rc" />
   </ItemGroup>
   <ItemGroup Label="HeaderFiles">
+    <ClInclude Include="clianalysisreport.h" />
     <ClInclude Include="cmdlineparser.h" />
     <ClInclude Include="cppcheckexecutor.h" />
     <ClInclude Include="cppcheckexecutorseh.h" />
@@ -411,8 +412,10 @@
     <ClInclude Include="executor.h" />
     <ClInclude Include="filelister.h" />
     <ClInclude Include="processexecutor.h" />
+    <ClInclude Include="sarifanalysisreport.h" />
     <ClInclude Include="stacktrace.h" />
     <ClInclude Include="threadexecutor.h" />
+    <ClInclude Include="xmlanalysisreport.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\lib\cppcheck.vcxproj">
@@ -420,6 +423,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="SourceFiles">
+    <ClCompile Include="clianalysisreport.cpp" />
     <ClCompile Include="cmdlineparser.cpp" />
     <ClCompile Include="cppcheckexecutor.cpp" />
     <ClCompile Include="cppcheckexecutorseh.cpp" />
@@ -428,8 +432,10 @@
     <ClCompile Include="filelister.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="processexecutor.cpp" />
+    <ClCompile Include="sarifanalysisreport.cpp" />
     <ClCompile Include="stacktrace.cpp" />
     <ClCompile Include="threadexecutor.cpp" />
+    <ClCompile Include="xmlanalysisreport.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

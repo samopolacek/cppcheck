@@ -19,9 +19,9 @@
 #ifndef ANALYSIS_REPORT_H
 #define ANALYSIS_REPORT_H
 
-#include "errorlogger.h"
-
 #include <string>
+
+class ErrorMessage;
 
 /**
  * @brief The AnalysisReport class is an abstract class meant to be sub-classed
@@ -33,7 +33,7 @@ public:
     /**
      * Submit a CppCheck result for inclusion into the report.
      */
-    virtual void addFinding(ErrorMessage msg) = 0;
+    virtual void addFinding(const ErrorMessage& msg) = 0;
 
     /**
      * Output the results as a string.

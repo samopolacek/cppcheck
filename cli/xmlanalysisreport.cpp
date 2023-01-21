@@ -17,12 +17,13 @@
  */
 
 #include "xmlanalysisreport.h"
+#include "errorlogger.h"
 
 XMLAnalysisReport::XMLAnalysisReport(const std::string& productName) {
     mBuffer << ErrorMessage::getXMLHeader(productName) << std::endl;
 }
 
-void XMLAnalysisReport::addFinding(const ErrorMessage msg) {
+void XMLAnalysisReport::addFinding(const ErrorMessage& msg) {
     mBuffer << msg.toXML() << std::endl;
 }
 

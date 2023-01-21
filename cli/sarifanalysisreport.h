@@ -32,7 +32,7 @@
 class SARIFAnalysisReport : public AnalysisReport {
 public:
     explicit SARIFAnalysisReport(std::string versionNumber);
-    void addFinding(ErrorMessage msg) override;
+    void addFinding(const ErrorMessage& msg) override;
     std::string serialize() override;
 private:
     std::string mVersionNumber;
