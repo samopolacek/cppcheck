@@ -87,6 +87,7 @@ std::string Summaries::create(const Tokenizer *tokenizer, const std::string &cfg
         if (pos != std::string::npos) {
             filename[pos+1] = 's';
             std::ofstream fout(filename);
+            fout.exceptions(std::ios_base::failbit | std::ios_base::badbit);
             fout << ostr.str();
         }
     }

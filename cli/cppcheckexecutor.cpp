@@ -267,6 +267,7 @@ int CppCheckExecutor::check_internal(CppCheck& cppcheck)
 
     if (!settings.outputFile.empty()) {
         mErrorOutput = new std::ofstream(settings.outputFile);
+        mErrorOutput->exceptions(std::ios_base::failbit | std::ios_base::badbit);
     }
 
     if (settings.xml) {

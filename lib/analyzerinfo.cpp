@@ -50,6 +50,7 @@ void AnalyzerInformation::writeFilesTxt(const std::string &buildDir, const std::
 
     const std::string filesTxt(buildDir + "/files.txt");
     std::ofstream fout(filesTxt);
+    fout.exceptions(std::ios_base::failbit | std::ios_base::badbit);
     for (const std::string &f : sourcefiles) {
         const std::string afile = getFilename(f);
         fout << afile << ".a" << (++fileCount[afile]) << "::" << Path::simplifyPath(Path::fromNativeSeparators(f)) << '\n';

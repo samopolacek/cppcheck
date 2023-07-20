@@ -281,6 +281,7 @@ static void createDumpFile(const Settings& settings,
 
     {
         std::ofstream fout(getCtuInfoFileName(dumpFile));
+        fout.exceptions(std::ios_base::failbit | std::ios_base::badbit);
     }
 
     std::string language;
@@ -505,6 +506,7 @@ unsigned int CppCheck::check(const std::string &path)
         const std::string redirect2 = analyzerInfo.empty() ? std::string("2>&1") : ("2> " + clangStderr);
         if (!mSettings.buildDir.empty()) {
             std::ofstream fout(clangcmd);
+            fout.exceptions(std::ios_base::failbit | std::ios_base::badbit);
             fout << exe << " " << args2 << " " << redirect2 << std::endl;
         } else if (mSettings.verbose && !mSettings.quiet) {
             mErrorLogger.reportOut(exe + " " + args2);
@@ -536,6 +538,7 @@ unsigned int CppCheck::check(const std::string &path)
 
         if (!mSettings.buildDir.empty()) {
             std::ofstream fout(clangAst);
+            fout.exceptions(std::ios_base::failbit | std::ios_base::badbit);
             fout << output2 << std::endl;
         }
 
@@ -555,6 +558,7 @@ unsigned int CppCheck::check(const std::string &path)
 
             // create dumpfile
             std::ofstream fdump;
+            fdump.exceptions(std::ios_base::failbit | std::ios_base::badbit);
             std::string dumpFile;
             createDumpFile(mSettings, path, fdump, dumpFile);
             if (fdump.is_open()) {
@@ -773,6 +777,7 @@ unsigned int CppCheck::checkFile(const std::string& filename, const std::string 
 
         // write dump file xml prolog
         std::ofstream fdump;
+        fdump.exceptions(std::ios_base::failbit | std::ios_base::badbit);
         std::string dumpFile;
         createDumpFile(mSettings, filename, fdump, dumpFile);
         if (fdump.is_open()) {
@@ -1423,6 +1428,7 @@ void CppCheck::executeAddons(const std::vector<std::string>& files)
     if (files.size() >= 2 || endsWith(files[0], ".ctu-info")) {
         fileList = Path::getPathFromFilename(files[0]) + FILELIST;
         std::ofstream fout(fileList);
+        fout.exceptions(std::ios_base::failbit | std::ios_base::badbit);
         for (const std::string& f: files)
             fout << f << std::endl;
     }
@@ -1682,6 +1688,7 @@ void CppCheck::analyseClangTidy(const ImportProject::FileSettings &fileSettings)
     if (!mSettings.buildDir.empty()) {
         const std::string analyzerInfoFile = AnalyzerInformation::getAnalyzerInfoFile(mSettings.buildDir, fileSettings.filename, emptyString);
         std::ofstream fcmd(analyzerInfoFile + ".clang-tidy-cmd");
+        fcmd.exceptions(std::ios_base::failbit | std::ios_base::badbit);
         fcmd << istr.str();
     }
 

@@ -77,6 +77,7 @@ static bool executeCommand(std::string exe, std::vector<std::string> args, std::
 
     if (redirect.compare(0,3,"2> ") == 0) {
         std::ofstream fout(redirect.substr(3));
+        fout->exceptions(std::ios_base::failbit | std::ios_base::badbit);
         fout << process.readAllStandardError().toStdString();
     }
     return process.exitCode() == 0;
