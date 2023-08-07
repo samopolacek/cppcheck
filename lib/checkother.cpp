@@ -991,7 +991,7 @@ void CheckOther::checkVariableScope()
     }
 }
 
-bool CheckOther::checkInnerScope(const Token *tok, const Variable* var, bool& used)
+bool CheckOther::checkInnerScope(const Token *tok, const Variable* var, bool& used) const
 {
     const Scope* scope = tok->next()->scope();
     bool loopVariable = scope->isLoopScope();
@@ -1070,6 +1070,18 @@ bool CheckOther::checkInnerScope(const Token *tok, const Variable* var, bool& us
 
                 if (scope->bodyStart && scope->bodyStart->isSimplifiedScope())
                     return false; // simplified if/for/switch init statement
+            }
+            if (var->isArrayOrPointer()) {
+                int argn{};
+                if (const Token* ftok = getTokenArgumentFunction(tok, argn)) { // var passed to function?
+                    if (ftok->next()->astParent()) { // return value used?
+                        if (ftok->function() && Function::returnsPointer(ftok->function()))
+                            return false;
+                        const std::string ret = mSettings->library.returnValueType(ftok); // assume that var is returned
+                        if (!ret.empty() && ret.back() == '*')
+                            return false;
+                    }
+                }
             }
         }
     }
@@ -1633,13 +1645,20 @@ void CheckOther::checkConstPointer()
             if (Token::simpleMatch(parent, "=") && parent->astOperand1() == tok)
                 continue;
             if (const Token* ftok = getTokenArgumentFunction(tok, argn)) {
-                if (ftok->function() && !parent->isCast()) {
-                    const Variable* argVar = ftok->function()->getArgumentVar(argn);
-                    if (argVar && argVar->valueType() && argVar->valueType()->isConst(vt->pointer)) {
-                        bool inconclusive{};
-                        if (!isVariableChangedByFunctionCall(ftok, vt->pointer, var->declarationId(), mSettings, &inconclusive) && !inconclusive)
-                            continue;
+                if (ftok->function()) {
+                    const bool isCastArg = parent->isCast() && !ftok->function()->getOverloadedFunctions().empty(); // assume that cast changes the called function
+                    if (!isCastArg) {
+                        const Variable* argVar = ftok->function()->getArgumentVar(argn);
+                        if (argVar && argVar->valueType() && argVar->valueType()->isConst(vt->pointer)) {
+                            bool inconclusive{};
+                            if (!isVariableChangedByFunctionCall(ftok, vt->pointer, var->declarationId(), mSettings, &inconclusive) && !inconclusive)
+                                continue;
+                        }
                     }
+                } else {
+                    const auto dir = mSettings->library.getArgDirection(ftok, argn + 1);
+                    if (dir == Library::ArgumentChecks::Direction::DIR_IN)
+                        continue;
                 }
             }
             else if (Token::simpleMatch(parent, "(")) {

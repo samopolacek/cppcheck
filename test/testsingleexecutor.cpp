@@ -19,6 +19,7 @@
 #include "cppcheck.h"
 #include "fixture.h"
 #include "helpers.h"
+#include "importproject.h"
 #include "redirect.h"
 #include "library.h"
 #include "settings.h"
@@ -28,10 +29,10 @@
 #include <algorithm>
 #include <cstddef>
 #include <functional>
+#include <list>
 #include <map>
 #include <memory>
 #include <set>
-#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -60,13 +61,21 @@ private:
         return std::to_string(i);
     }
 
-    void check(int files, int result, const std::string &data, SHOWTIME_MODES showtime = SHOWTIME_MODES::SHOWTIME_NONE, const char* const plistOutput = nullptr, const std::vector<std::string>& filesList = {}) {
+    struct CheckOptions
+    {
+        CheckOptions() DINIT_NOEXCEPT = default;
+        SHOWTIME_MODES showtime = SHOWTIME_MODES::SHOWTIME_NONE;
+        const char* plistOutput = nullptr;
+        std::vector<std::string> filesList;
+    };
+
+    void check(int files, int result, const std::string &data, const CheckOptions &opt = {}) {
         errout.str("");
         output.str("");
         settings.project.fileSettings.clear();
 
         std::map<std::string, std::size_t> filemap;
-        if (filesList.empty()) {
+        if (opt.filesList.empty()) {
             for (int i = 1; i <= files; ++i) {
                 const std::string s = fprefix() + "_" + zpad3(i) + ".cpp";
                 filemap[s] = data.size();
@@ -78,7 +87,7 @@ private:
             }
         }
         else {
-            for (const auto& f : filesList)
+            for (const auto& f : opt.filesList)
             {
                 filemap[f] = data.size();
                 if (useFS) {
@@ -89,9 +98,9 @@ private:
             }
         }
 
-        settings.showtime = showtime;
-        if (plistOutput)
-            settings.plistOutput = plistOutput;
+        settings.showtime = opt.showtime;
+        if (opt.plistOutput)
+            settings.plistOutput = opt.plistOutput;
         // NOLINTNEXTLINE(performance-unnecessary-value-param)
         CppCheck cppcheck(*this, true, [](std::string,std::vector<std::string>,std::string,std::string&){
             return false;
@@ -108,7 +117,7 @@ private:
             filemap.clear();
 
         // TODO: test with settings.project.fileSettings;
-        SingleExecutor executor(cppcheck, filemap, settings, *this);
+        SingleExecutor executor(cppcheck, filemap, settings, settings.nomsg, *this);
         ASSERT_EQUALS(result, executor.check());
     }
 
@@ -151,7 +160,7 @@ private:
               "{\n"
               "  char *a = malloc(10);\n"
               "  return 0;\n"
-              "}", SHOWTIME_MODES::SHOWTIME_SUMMARY);
+              "}", dinit(CheckOptions, $.showtime = SHOWTIME_MODES::SHOWTIME_SUMMARY));
     }
 
     void many_files_plist() {
@@ -163,7 +172,7 @@ private:
               "{\n"
               "  char *a = malloc(10);\n"
               "  return 0;\n"
-              "}", SHOWTIME_MODES::SHOWTIME_NONE, plistOutput);
+              "}", dinit(CheckOptions, $.plistOutput = plistOutput));
     }
 
     void no_errors_more_files() {
@@ -224,7 +233,7 @@ private:
               "  char *a = malloc(10);\n"
               "  return 0;\n"
               "}",
-              SHOWTIME_MODES::SHOWTIME_NONE, nullptr, files);
+              dinit(CheckOptions, $.filesList = files));
         // TODO: filter out the "files checked" messages
         ASSERT_EQUALS("Checking " + fprefix() + "_2.cpp ...\n"
                       "1/4 files checked 25% done\n"

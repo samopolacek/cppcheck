@@ -34,6 +34,7 @@
 #include "token.h"
 #include "utils.h"
 #include "valueflow.h"
+#include "vfvalue.h"
 
 #include <algorithm>
 #include <cassert>
@@ -3360,9 +3361,9 @@ bool Tokenizer::simplifyTokens1(const std::string &configuration)
     if (doValueFlow) {
         if (mTimerResults) {
             Timer t("Tokenizer::simplifyTokens1::ValueFlow", mSettings->showtime, mTimerResults);
-            ValueFlow::setValues(&list, mSymbolDatabase, mErrorLogger, mSettings, mTimerResults);
+            ValueFlow::setValues(list, *mSymbolDatabase, mErrorLogger, mSettings, mTimerResults);
         } else {
-            ValueFlow::setValues(&list, mSymbolDatabase, mErrorLogger, mSettings, mTimerResults);
+            ValueFlow::setValues(list, *mSymbolDatabase, mErrorLogger, mSettings, mTimerResults);
         }
     }
 
@@ -3427,8 +3428,10 @@ void Tokenizer::fillTypeSizes()
     mTypeSize["short"] = mSettings->platform.sizeof_short;
     mTypeSize["int"] = mSettings->platform.sizeof_int;
     mTypeSize["long"] = mSettings->platform.sizeof_long;
+    mTypeSize["long long"] = mSettings->platform.sizeof_long_long;
     mTypeSize["float"] = mSettings->platform.sizeof_float;
     mTypeSize["double"] = mSettings->platform.sizeof_double;
+    mTypeSize["long double"] = mSettings->platform.sizeof_long_double;
     mTypeSize["wchar_t"] = mSettings->platform.sizeof_wchar_t;
     mTypeSize["size_t"] = mSettings->platform.sizeof_size_t;
     mTypeSize["*"] = mSettings->platform.sizeof_pointer;
@@ -5250,7 +5253,8 @@ void Tokenizer::createLinks2()
         } else if (token->str() == "<" &&
                    ((token->previous() && (token->previous()->isTemplate() ||
                                            (token->previous()->isName() && !token->previous()->varId()) ||
-                                           (token->strAt(-1) == "]" && (!Token::Match(token->linkAt(-1)->previous(), "%name%|)") || token->linkAt(-1)->previous()->isKeyword())))) ||
+                                           (token->strAt(-1) == "]" && (!Token::Match(token->linkAt(-1)->previous(), "%name%|)") || token->linkAt(-1)->previous()->isKeyword())) ||
+                                           (token->strAt(-1) == ")" && token->linkAt(-1)->strAt(-1) == "operator"))) ||
                     Token::Match(token->next(), ">|>>"))) {
             type.push(token);
             if (token->previous()->str() == "template")

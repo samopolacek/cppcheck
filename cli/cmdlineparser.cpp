@@ -44,17 +44,12 @@
 #include <list>
 #include <set>
 #include <sstream> // IWYU pragma: keep
-#include <stdexcept>
 #include <unordered_set>
 #include <utility>
 
 #ifdef HAVE_RULES
 // xml is used for rules
 #include <tinyxml2.h>
-#endif
-
-#ifdef __linux__
-#include <unistd.h>
 #endif
 
 static bool addFilesToList(const std::string& fileList, std::vector<std::string>& pathNames)
@@ -290,10 +285,14 @@ bool CmdLineParser::parseFromArgs(int argc, const char* const argv[])
             }
 
             else if (std::strncmp(argv[i], "--cppcheck-build-dir=", 21) == 0) {
-                // TODO: bail out when the folder does not exist? will silently do nothing
                 mSettings.buildDir = Path::fromNativeSeparators(argv[i] + 21);
                 if (endsWith(mSettings.buildDir, '/'))
                     mSettings.buildDir.pop_back();
+
+                if (!Path::directoryExists(mSettings.buildDir)) {
+                    printError("Directory '" + mSettings.buildDir + "' specified by --cppcheck-build-dir argument has to be existent.");
+                    return false;
+                }
             }
 
             // Show --debug output after the first simplifications
@@ -1031,7 +1030,7 @@ bool CmdLineParser::parseFromArgs(int argc, const char* const argv[])
     else if ((def || mSettings.preprocessOnly) && !maxconfigs)
         mSettings.maxConfigs = 1U;
 
-    if (mSettings.checks.isEnabled(Checks::unusedFunction) && mSettings.jobs > 1) {
+    if (mSettings.checks.isEnabled(Checks::unusedFunction) && mSettings.jobs > 1 && mSettings.buildDir.empty()) {
         printMessage("unusedFunction check can't be used with '-j' option. Disabling unusedFunction check.");
     }
 
@@ -1287,6 +1286,7 @@ void CmdLineParser::printHelp()
         "                         the configuration cppcheck should check.\n"
         "                         For example: '--project-configuration=Release|Win32'\n"
         "    -q, --quiet          Do not show progress reports.\n"
+        "                         Note that this option is not mutually exclusive with --verbose.\n"
         "    -rp=<paths>, --relative-paths=<paths>\n"
         "                         Use relative paths in output. When given, <paths> are\n"
         "                         used as base. You can separate multiple paths by ';'.\n"
@@ -1371,6 +1371,7 @@ void CmdLineParser::printHelp()
     "                         hide certain #ifdef <ID> code paths from checking.\n"
     "                         Example: '-UDEBUG'\n"
     "    -v, --verbose        Output more detailed error information.\n"
+    "                         Note that this option is not mutually exclusive with --quiet.\n"
     "    --version            Print out version number.\n"
     "    --xml                Write results in xml format to error stream (stderr).\n"
     "\n"

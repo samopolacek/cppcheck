@@ -51,8 +51,8 @@ namespace ValueFlow {
     const Value * valueFlowConstantFoldAST(Token *expr, const Settings *settings);
 
     /// Perform valueflow analysis.
-    void setValues(TokenList* tokenlist,
-                   SymbolDatabase* symboldatabase,
+    void setValues(TokenList& tokenlist,
+                   SymbolDatabase& symboldatabase,
                    ErrorLogger* errorLogger,
                    const Settings* settings,
                    TimerResultsIntf* timerResults);
